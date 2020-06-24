@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,27 +22,25 @@
  *
  */
 
-#ifndef SHARE_GC_PARALLEL_PSROOTTYPE_HPP
-#define SHARE_GC_PARALLEL_PSROOTTYPE_HPP
+#ifndef SHARE_GC_SHARED_OOPSTORAGESETPARSTATE_HPP
+#define SHARE_GC_SHARED_OOPSTORAGESETPARSTATE_HPP
 
-#include "memory/allocation.hpp"
-#include "utilities/macros.hpp"
+#include "gc/shared/oopStorageParState.hpp"
+#include "gc/shared/oopStorageSet.hpp"
+#include "utilities/valueObjArray.hpp"
 
-class ParallelRootType : public AllStatic {
+template <bool concurrent, bool is_const>
+class OopStorageSetStrongParState {
+  typedef OopStorage::ParState<concurrent, is_const> ParStateType;
+  typedef ValueObjArray<ParStateType, OopStorageSet::strong_count> ParStateArray;
+
+  ParStateArray _par_states;
+
 public:
-  // Order and compactness of this enum is of importance.
-  // The order reflects the order these roots are to be processed,
-  // We do not want any holes in the enum as we enumerate these values by incrementing them.
-  enum Value {
-    universe,
-    object_synchronizer,
-    management,
-    class_loader_data,
-    jvmti,
-    code_cache,
-    //"threads" are handled in parallel as a special case
-    sentinel
-  };
+  OopStorageSetStrongParState();
+
+  template <typename Closure>
+  void oops_do(Closure* cl);
 };
 
-#endif /* SHARE_GC_PARALLEL_PSROOTTYPE_HPP */
+#endif // SHARE_GC_SHARED_OOPSTORAGESETPARSTATE_HPP
